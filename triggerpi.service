@@ -1,0 +1,13 @@
+[Unit]
+Description=12V Trigger Monitor daemon
+
+[Service]
+Type=forking
+ExecStart=/home/pi/daemon.py
+ExecStop=kill $(cat /tmp/targetpi.pid)
+ExecRestart=kill $(cat /tmp/targetpi.pid);/home/pi/daemon.py
+StandardOutput=null
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
