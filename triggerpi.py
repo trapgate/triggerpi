@@ -61,9 +61,12 @@ def getInput():
     """
     Read the input signal and return it.
 
-    This reads input 1 and returns 0 or 1, depending on the voltage.
+    This reads inputs 1 2 and 3 and returns a tuple of 0 or 1 values, depending
+    on the voltage.
     """
-    return automationhat.input.one.read()
+    return (automationhat.input.one.read(),
+            automationhat.input.two.read(),
+            automationhat.input.three.read())
 
 
 class State:
@@ -80,6 +83,8 @@ class StateOff(State):
         State.__init__(self)
         # Turn the power LED off
         automationhat.light.power.off()
+        automationhat.light.comms.off()
+        automationhat.light.warn.off()
         # Turn off all three relays
         automationhat.relay.one.off()
         automationhat.relay.two.off()
@@ -87,28 +92,30 @@ class StateOff(State):
 
     def input(self, input):
         # If the input is currently 0 we'll stay off
-        if input == 0:
-            return ''
-        # Input is high. Move to the 'turning_on' state.
-        return 'turning_on'
+        if 1 in input:
+            # Any input is high. Move to the 'turning_on' state.
+            return 'turning_on'
+        return ''
 
 
 class StateTurningOn(State):
     def __init__(self):
         State.__init__(self)
-        # Turn the comms light on.
+        # Turn the power light on.
+        automationhat.light.power.on()
         automationhat.light.comms.on()
+        automationhat.light.warn.off()
 
     def input(self, input):
-        # If the input is 0 again, the amp is mostly started and has gotten
+        # If all inputs are 0 again, the amp is mostly started and has gotten
         # around to initializing the triggers. Go to the armed state.
-        if input == 0:
+        if 1 not in input:
             return 'armed'
         # Otherwise, see how long since the input went high, and dim the comms
         # LED as more time elapses.
         elapsed = (datetime.datetime.now() - self.started).total_seconds()
         if elapsed >= POWERON_HOLD_TIME:
-            return 'on'
+            return 'armed'
         pct_elapsed = elapsed / POWERON_HOLD_TIME
         # Don't let the brightness of the comms led go below .01, or it will
         # turn off.
@@ -120,18 +127,16 @@ class StateTurningOn(State):
 class StateArmed(State):
     def __init__(self):
         State.__init__(self)
+        automationhat.light.power.on()
         automationhat.light.comms.off()
         automationhat.light.warn.on()
 
     def input(self, input):
-        # If the input is 1, go to the on state. If it stays 0 for too long,
-        # go to the off state.
-        if input == 1:
-            automationhat.light.warn.off()
+        # We stay in this state as long as any input is 1.
+        if 1 in input:
             return 'on'
         elapsed = (datetime.datetime.now() - self.started).total_seconds()
         if elapsed >= ARMED_HOLD_TIME:
-            automationhat.light.warn.off()
             return 'off'
         return ''
 
@@ -141,25 +146,31 @@ class StateOn(State):
         State.__init__(self)
         automationhat.light.power.on()
         automationhat.light.comms.off()
-        # turn the relays on, with a small delay between each one, though
-        # there's probably no reason for the delay.
-        automationhat.relay.one.on()
-        sleep(.1)
-        automationhat.relay.two.on()
-        sleep(.1)
-        automationhat.relay.three.on()
+        automationhat.light.warn.off()
 
     def input(self, input):
-        if input == 1:
-            return ''
-        return 'off'
+        if 1 not in input:
+            return 'off'
+        # Set all three relays to match their inputs.
+        if input[0] == 1:
+            automationhat.relay.one.on()
+        else:
+            automationhat.relay.one.off()
+        if input[1] == 1:
+            automationhat.relay.two.on()
+        else:
+            automationhat.relay.two.off()
+        if input[2] == 1:
+            automationhat.relay.three.on()
+        else:
+            automationhat.relay.three.off()
+        return ''
 
 
 states = {'off': StateOff,
           'turning_on': StateTurningOn,
           'armed': StateArmed,
           'on': StateOn}
-
 current_state = None
 
 
@@ -181,7 +192,7 @@ def trigger():
     # Our initial state depends on whether the input is currently low or high.
     # If it's low we'll start in the outputOff state; if it's high jump right to
     # the outputOn state.
-    if getInput() == 1:
+    if 1 in getInput():
         set_state('on')
     else:
         set_state('off')
