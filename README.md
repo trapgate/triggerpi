@@ -13,9 +13,8 @@ again, which is a little annoying. Triggers should behave better than this.
 
 This program fixes the problem with a small state machine that delays turning on
 the outputs until the second rising of the trigger signal. There are also
-timeouts built in so that if trigger goes high and stays that way the outputs
+timeouts built in so that if a trigger goes high and stays that way the outputs
 will still eventually turn on.
 
-Right now the three outputs are controlled by a single trigger input, but the
-hardware has three of each, so that could change to support triggers with
-different conditions attached to them.
+There are only three relays on the AutomationHat, so this only works for 3 of
+the 4 12V triggers on the XMC-1.
