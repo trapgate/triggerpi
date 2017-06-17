@@ -23,13 +23,20 @@ There are more details about the hardware to use and how to wire things up in
 the comments at the top of triggerpi.py. There's no wiring diagram at the
 moment.
 
+## Disclaimer
+This project isn't without risk. It involves connecting electrical components to
+the trigger outputs of your (expensive) XMC-1. I have no idea how robust those
+outputs are to things like short circuits, but you can assume that if you screw
+things up you might damage your XMC-1, the RaspberryPi, or both. If that's not
+a risk you're comfortable with, don't proceed with this project.
+
 ## Installation
 These instructions are a little sparse, and assume a fair amount of Linux
 knowledge. They could be improved. The installation process is a matter of
-putting two python files into the pi user's home directory, then setting up
-systemd to start them at boot time. (If you're using a version of raspbian
-that doesn't have systemd, you'll need to use other methods to start the
-daemon automatically).
+putting two python files into the pi user's home directory on your RaspberryPi,
+then setting up systemd to start them at boot time. (If you're using a version
+of raspbian that doesn't have systemd, you'll need to use other methods to start
+the daemon automatically).
 
 First install a recent build of raspbian on the RaspberryPi, then install the
 AutomationHat python module by following the instructions in
