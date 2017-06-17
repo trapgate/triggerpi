@@ -23,8 +23,8 @@
 #
 # This program is written to run on a RaspberryPi 3 with a Pimoroni
 # AutomationHat. The AutomationHat has 3 24V-tolerant inputs and three relays.
-# We'll use the relays to control the trigger outputs. Input one will be our
-# sole input signal.
+# We'll use the relays to control the trigger outputs. Input one will control
+# relay 1, input 2 relay 2, etc.
 #
 # The Emotiva XMC-1) has two different standby modes. When configured to use the
 # low-power standby mode, the 12V trigger module doesn't function correctly: it
@@ -35,7 +35,10 @@
 # To fix this behavior, this module watches the trigger inputs, and handles the
 # input values using a state machine. The state machine expects any trigger to
 # go high for a certain amount of time, then low again, then high again. The
-# trigger outputs will be turned on the second time an input goes high.
+# trigger outputs will be turned on the second time an input goes high. When all
+# 3 of the trigger inputs turn off, the state machine will assume that the XMC-1
+# has been turned off, and it'll go through the powering-on states next time a
+# trigger turns on.
 #
 # This will work as long as at least one of the trigger inputs is turned on once
 # the XMC-1 finishes booting. If that's not how you have your triggers set up
@@ -47,19 +50,22 @@
 # The pi doesn't have a 12V power supply, so I used voltage from the trigger
 # inputs. That does mean that there's no way to keep powering a trigger if the
 # XMC-1 has turned off the trigger line, since even if the relay is switched
-# there won't be any voltage present.
+# there won't be any voltage present. If you wanted to keep the triggers turned
+# on after the XMC-1 turned them off, you'd need to use an external voltage
+# source.
 #
-# For each trigger input there are a pair of jacks, one for input and the other
-# for output to the connected device. On the input jack, connect two wires to
-# the tip and two to the ring. Run one of the tip wires to an AutomationHat
-# input, and the other to one of the relay commons. Then run one of the ground
-# wires to one of the AutomationHat ground connections, and the other to the
-# ring connection on the other jack. Finally connect the normally open (NO)
-# terminal on the relay to the tip connection on the output jack.
+# For each trigger input there are a pair of 3.5mm jacks, one for input and the
+# other for output to the connected device. To wire the input jack, connect two
+# wires to the tip, which will be 12V when the trigger is on, and two to the
+# ring, which is the ground. Run one of the tip wires to an AutomationHat input,
+# and the other to one of the relay commons. Then run one of the ground wires to
+# one of the AutomationHat ground connections, and the other to the ring
+# connection on the other jack. Finally connect the normally open (NO) terminal
+# on the relay to the tip connection on the output jack.
 
-# The automationhat module is provided by pimoroni; installation instructions
-# are in the project README.md file at
-# https://github.com/pimoroni/automation-hat.
+# The automationhat python module is provided by pimoroni, and will need to be
+# installed before this program will run; instructions are in the project
+# README.md file at https://github.com/pimoroni/automation-hat/README.md.
 import automationhat
 import datetime
 from time import sleep
