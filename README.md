@@ -18,3 +18,23 @@ will still eventually turn on.
 
 There are only three relays on the AutomationHat, so this only works for 3 of
 the 4 12V triggers on the XMC-1.
+
+There are more details about the hardware to use and how to wire things up in
+the comments at the top of triggerpi.py. There's no wiring diagram at the
+moment.
+
+## Installation
+These instructions are a little sparse, and assume a fair amount of Linux
+knowledge. They could be improved. The installation process is a matter of
+putting two python files into the pi user's home directory, then setting up
+systemd to start them at boot time. (If you're using a version of raspbian
+that doesn't have systemd, you'll need to use other methods to start the
+daemon automatically).
+
+First install a recent build of raspbian on the RaspberryPi, then install the
+AutomationHat python module by following the instructions in
+https://github.com/pimoroni/automation-hat/README.md. Copy triggerpi.py and
+daemon.py to /home/pi on the RaspberryPi, and copy triggerpi.service to
+/etc/systemd/system. Finally, run this command to enable the new service:
+
+$ sudo systemctl enable triggerpi.service
